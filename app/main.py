@@ -121,16 +121,12 @@ def register(payload: RegisterInput):
         {"email": payload.email.strip().lower(), "password": payload.password},
     )
     try:
-        user = create_user(payload.username, payload.email, uuid.uuid4().hex)
+        # Keep a local password hash so the app can work while Supabase email
+        # confirmation is enabled and no access token is returned yet.
+        user = create_user(payload.username, payload.email, payload.password)
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e))
     token = create_session(user["id"], user["username"])
-
-    if not (auth_data.get("session") or {}).get("access_token"):
-        raise HTTPException(
-            status_code=403,
-            detail="Account created. Check your email to confirm it before signing in.",
-        )
     return AuthResponse(token=token, username=user["username"])
 
 

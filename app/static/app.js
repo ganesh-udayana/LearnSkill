@@ -192,16 +192,24 @@ function toggleRoadmapsDropdown() {
   dd.classList.toggle('hidden');
 }
 
-function renderSavedRoadmapsDropdown() {
+function filterHistory(query) {
+  const normalizedQuery = query.trim().toLowerCase();
+  const filtered = savedRoadmaps.filter(roadmap =>
+    roadmap.goal.toLowerCase().includes(normalizedQuery)
+  );
+  renderSavedRoadmapsDropdown(filtered);
+}
+
+function renderSavedRoadmapsDropdown(roadmaps = savedRoadmaps) {
   const container = document.getElementById('roadmapsListContainer');
   if (!container) return;
 
-  if (savedRoadmaps.length === 0) {
+  if (roadmaps.length === 0) {
     container.innerHTML = '<div class="p-3 text-center text-slate-400">No saved roadmaps yet.</div>';
     return;
   }
 
-  container.innerHTML = savedRoadmaps.map(rm => `
+  container.innerHTML = roadmaps.map(rm => `
     <div class="px-3 py-2 hover:bg-slate-50 flex items-center justify-between group cursor-pointer" onclick="loadRoadmap('${rm.id}')">
       <div class="truncate pr-2">
         <div class="font-bold text-slate-800 truncate">${escapeHtml(rm.goal)}</div>

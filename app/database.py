@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from datetime import datetime
 from typing import List, Optional
 from dotenv import load_dotenv
@@ -48,6 +49,8 @@ if DATABASE_URL.startswith("sqlite"):
 engine = create_engine(DATABASE_URL, **engine_args)
 metadata = MetaData()
 _database_initialized = False
+_history_cache = {}
+_history_cache_ttl = 15
 
 # Define tables
 roadmaps_table = Table(
@@ -165,6 +168,16 @@ def _migrate_roadmap_schema():
     if "user_id" not in columns:
         with engine.begin() as conn:
             conn.execute(text("ALTER TABLE roadmaps ADD COLUMN user_id VARCHAR(64)"))
+    with engine.begin() as conn:
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_roadmaps_user_updated ON roadmaps (user_id, updated_at DESC)"))
+
+
+def _invalidate_history_cache(user_id: Optional[str] = None):
+    if user_id is None:
+        _history_cache.clear()
+        return
+    _history_cache.pop(("list", user_id), None)
+    _history_cache.pop(("latest", user_id), None)
 
 
 def save_roadmap(roadmap: Roadmap, user_id: Optional[str] = None) -> Roadmap:
@@ -208,6 +221,7 @@ def save_roadmap(roadmap: Roadmap, user_id: Optional[str] = None) -> Roadmap:
             )
             conn.execute(insert_stmt)
 
+            _invalidate_history_cache(user_id)
     return roadmap
 
 
@@ -223,18 +237,28 @@ def get_roadmap(roadmap_id: str) -> Optional[Roadmap]:
 
 def get_latest_roadmap(user_id: Optional[str] = None) -> Optional[Roadmap]:
     init_db()
+    cache_key = ("latest", user_id)
+    cached = _history_cache.get(cache_key)
+    if cached and time.monotonic() - cached[0] < _history_cache_ttl:
+        return cached[1]
     with engine.connect() as conn:
         stmt = select(roadmaps_table.c.data_json).order_by(roadmaps_table.c.updated_at.desc()).limit(1)
         if user_id:
             stmt = stmt.where(roadmaps_table.c.user_id == user_id)
         row = conn.execute(stmt).fetchone()
         if row:
-            return Roadmap.model_validate_json(row[0])
+            result = Roadmap.model_validate_json(row[0])
+            _history_cache[cache_key] = (time.monotonic(), result)
+            return result
     return None
 
 
 def list_roadmaps(user_id: Optional[str] = None) -> List[dict]:
     init_db()
+    cache_key = ("list", user_id)
+    cached = _history_cache.get(cache_key)
+    if cached and time.monotonic() - cached[0] < _history_cache_ttl:
+        return cached[1]
     results = []
     with engine.connect() as conn:
         stmt = select(
@@ -269,6 +293,7 @@ def list_roadmaps(user_id: Optional[str] = None) -> List[dict]:
                     "progress_percentage": parsed.get("progress_percentage", 0.0),
                 }
             )
+    _history_cache[cache_key] = (time.monotonic(), results)
     return results
 
 
