@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PathPulse AI — Personalized Learning Roadmap Generator</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="h-full flex flex-col text-slate-800 antialiased selection:bg-indigo-500 selection:text-white">
+  <script>
+    // Auth gate — verify the session token against the backend before showing the app.
+    (function () {
+      var token = window.localStorage.getItem('pathpulse_token') || window.sessionStorage.getItem('pathpulse_token');
+      if (!token) {
+        window.location.replace('/login');
+        return;
+      }
+      fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
+        .then(function (res) {
+          if (!res.ok) throw new Error('unauthenticated');
+          return res.json();
+        })
+        .catch(function () {
+          window.localStorage.removeItem('pathpulse_token');
+          window.localStorage.removeItem('pathpulse_user');
+          window.sessionStorage.removeItem('pathpulse_token');
+          window.sessionStorage.removeItem('pathpulse_user');
+          window.location.replace('/login');
+        });
+    })();
+  </script>
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="showGeneratorScreen()">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-200">
+          <i data-lucide="compass" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-lg text-slate-900 tracking-tight">PathPulse<span class="text-indigo-600">AI</span></span>
+            <span class="px-2 py-0.5 text-xs font-semibold bg-indigo-50 text-indigo-700 rounded-full border border-indigo-100">Mentor Inside</span>
+          </div>
+          <p class="text-[11px] text-slate-500 hidden sm:block">Personalized Learning Roadmap Generator</p>
+        </div>
+      </div>
+
+      <!-- Right Header Actions -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
+
+        <!-- Home Button -->
+        <button onclick="showGeneratorScreen()" title="Home" aria-label="Home" class="flex items-center space-x-1.5 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium transition">
+          <i data-lucide="home" class="w-4 h-4 text-indigo-600"></i>
+          <span class="hidden sm:inline">Home</span>
+        </button>
+        
+        <!-- Gamification Streak Counter -->
+        <button onclick="openBadgesModal()" title="View Gamification Streaks & Badges" class="flex items-center space-x-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-xs font-semibold transition">
+          <span>🔥</span>
+          <span id="streakCount">3</span>
+          <span class="hidden md:inline">Day Streak</span>
+        </button>
+
+        <!-- Badges Button -->
+        <button onclick="openBadgesModal()" title="Earned Badges" class="flex items-center space-x-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium transition">
+          <i data-lucide="award" class="w-4 h-4 text-indigo-600"></i>
+          <span id="badgeCount">1</span>
+        </button>
+
+        <!-- Saved Roadmaps Dropdown -->
+        <div class="relative">
+          <button id="savedRoadmapsBtn" onclick="toggleRoadmapsDropdown()" class="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium transition">
+            <i data-lucide="folder" class="w-4 h-4 text-slate-500"></i>
+            <span class="hidden sm:inline">My History</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+          </button>
+          
+          <div id="roadmapsDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50">
+            <div class="px-3 py-1.5 border-b border-slate-100 flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Your Learning History</span>
+              <button onclick="showGeneratorScreen()" class="text-xs text-indigo-600 font-semibold hover:underline">+ Create New</button>
+            </div>
+            <div id="roadmapsListContainer" class="max-h-60 overflow-y-auto divide-y divide-slate-50 py-1 text-xs">
+              <div class="p-3 text-center text-slate-400">Loading saved plans...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings Button -->
+        <button onclick="openSettingsModal()" title="AI & API Settings" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Logout Button -->
+        <button onclick="logoutUser()" title="Log Out" class="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+
+        <!-- New Plan CTA -->
+        <button onclick="showGeneratorScreen()" class="hidden md:flex items-center space-x-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>New Goal</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ========================================== -->
+    <!-- SCREEN 1: GOAL INPUT GENERATOR             -->
+    <!-- ========================================== -->
+    <section id="generatorScreen" class="py-4">
+      <div class="max-w-7xl mx-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-8 items-start">
+        <div class="min-w-0">
+        
+        <!-- Hero Title -->
+        <div class="text-center mb-8">
+          <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100 mb-3">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-500"></i>
+            <span>Adaptive AI Mentor</span>
+          </span>
+          <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            What do you want to learn?
+          </h1>
+          <p class="mt-2 text-sm sm:text-base text-slate-600">
+            Tell your AI mentor what you want to achieve. We'll engineer a tailored milestone plan with free resources, dynamic check-ins, and adaptive pacing.
+          </p>
+        </div>
+
+        <!-- Quick Sample Presets -->
+        <div class="mb-6">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Popular Career Goals</p>
+          <div class="flex flex-wrap gap-2" id="presetChips">
+            <button type="button" onclick="applyPreset('become a data analyst in 3 months', 'beginner', 10, 12, 'project-based')" class="px-3 py-1.5 bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 rounded-lg text-xs text-slate-700 transition">
+              📊 Data Analyst (3 Months)
+            </button>
+            <button type="button" onclick="applyPreset('full stack web developer', 'beginner', 15, 12, 'project-based')" class="px-3 py-1.5 bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 rounded-lg text-xs text-slate-700 transition">
+              💻 Full-Stack Web Dev (12 Weeks)
+            </button>
+            <button type="button" onclick="applyPreset('machine learning engineer', 'intermediate', 12, 16, 'project-based')" class="px-3 py-1.5 bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 rounded-lg text-xs text-slate-700 transition">
+              🤖 Machine Learning (16 Weeks)
+            </button>
+            <button type="button" onclick="applyPreset('UI/UX product designer', 'beginner', 8, 8, 'project-based')" class="px-3 py-1.5 bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 rounded-lg text-xs text-slate-700 transition">
+              🎨 UI/UX Designer (8 Weeks)
+            </button>
+          </div>
+        </div>
+
+        <!-- Generation Form Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
+          
+          <!-- 1. Free-text Goal Input -->
+          <div>
+            <label for="goalInput" class="block text-sm font-semibold text-slate-800 mb-1.5">
+              Your Learning Goal <span class="text-rose-500">*</span>
+            </label>
+            <div class="relative">
+              <input type="text" id="goalInput" placeholder="e.g., become a data analyst in 3 months, master React & TypeScript, learn deep learning" class="w-full px-4 py-3 pl-11 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition" value="become a data analyst in 3 months" required>
+              <i data-lucide="target" class="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5"></i>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">Be as specific or ambitious as you like!</p>
+          </div>
+
+          <!-- 2. Current Skill Level -->
+          <div>
+            <label class="block text-sm font-semibold text-slate-800 mb-2">Current Skill Level</label>
+            <div class="grid grid-cols-3 gap-3">
+              <label class="relative flex flex-col items-center p-3.5 border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-300 transition text-center skill-level-card" data-level="beginner">
+                <input type="radio" name="skillLevel" value="beginner" checked class="sr-only">
+                <span class="text-lg mb-1">🌱</span>
+                <span class="text-xs font-bold text-slate-800">Beginner</span>
+                <span class="text-[10px] text-slate-400 mt-0.5">Starting from zero</span>
+              </label>
+              <label class="relative flex flex-col items-center p-3.5 border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-300 transition text-center skill-level-card" data-level="intermediate">
+                <input type="radio" name="skillLevel" value="intermediate" class="sr-only">
+                <span class="text-lg mb-1">🌿</span>
+                <span class="text-xs font-bold text-slate-800">Intermediate</span>
+                <span class="text-[10px] text-slate-400 mt-0.5">Know the basics</span>
+              </label>
+              <label class="relative flex flex-col items-center p-3.5 border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-300 transition text-center skill-level-card" data-level="advanced">
+                <input type="radio" name="skillLevel" value="advanced" class="sr-only">
+                <span class="text-lg mb-1">🌳</span>
+                <span class="text-xs font-bold text-slate-800">Advanced</span>
+                <span class="text-[10px] text-slate-400 mt-0.5">Upskilling / Mastery</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 3. Time Commitment (Hours/Week & Target Timeframe) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            <!-- Hours Per Week -->
+            <div class="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+              <div class="flex items-center justify-between mb-2">
+                <label for="hoursPerWeek" class="text-xs font-bold text-slate-700">Hours / Week Available</label>
+                <span id="hoursDisplay" class="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-md text-xs font-extrabold">10 hrs/wk</span>
+              </div>
+              <input type="range" id="hoursPerWeek" min="3" max="40" step="1" value="10" class="w-full accent-indigo-600 cursor-pointer" oninput="updateHoursDisplay(this.value)">
+              <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                <span>3 hrs (Casual)</span>
+                <span>15 hrs (Serious)</span>
+                <span>40 hrs (Bootcamp)</span>
+              </div>
+            </div>
+
+            <!-- Target Timeframe -->
+            <div class="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+              <label for="timeframeWeeks" class="block text-xs font-bold text-slate-700 mb-2">Target Timeframe</label>
+              <select id="timeframeWeeks" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="4">4 Weeks (Intensive Sprint)</option>
+                <option value="8">8 Weeks (2 Months)</option>
+                <option value="10">10 Weeks (Recommended)</option>
+                <option value="12" selected>12 Weeks (3 Months)</option>
+                <option value="16">16 Weeks (4 Months)</option>
+                <option value="24">24 Weeks (6 Months)</option>
+              </select>
+              <p class="text-[10px] text-slate-400 mt-2">AI calibrates milestone pacing to fit your timeframe.</p>
+            </div>
+
+          </div>
+
+          <!-- 4. Learning Style Toggle: Project-Based vs Theory-First -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-sm font-semibold text-slate-800">Learning Philosophy</label>
+              <span class="text-xs text-indigo-600 font-medium">Adapts curriculum & resources</span>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- Project Based Card -->
+              <label class="relative flex p-4 border-2 border-indigo-600 bg-indigo-50/40 rounded-xl cursor-pointer transition style-card" data-style="project-based">
+                <input type="radio" name="learningStyle" value="project-based" checked class="sr-only">
+                <div class="flex items-start space-x-3">
+                  <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                    <i data-lucide="hammer" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <div class="flex items-center space-x-1.5">
+                      <span class="text-xs font-bold text-slate-900">Project-Based</span>
+                      <span class="px-1.5 py-0.2 bg-indigo-100 text-indigo-700 rounded text-[9px] font-bold">Practical</span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 mt-1">
+                      Learn by building real projects, hands-on code labs, and portfolio deliverables. Fast tangible results.
+                    </p>
+                  </div>
+                </div>
+              </label>
+
+              <!-- Theory First Card -->
+              <label class="relative flex p-4 border border-slate-200 bg-white hover:border-indigo-300 rounded-xl cursor-pointer transition style-card" data-style="theory-first">
+                <input type="radio" name="learningStyle" value="theory-first" class="sr-only">
+                <div class="flex items-start space-x-3">
+                  <div class="w-8 h-8 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center shrink-0">
+                    <i data-lucide="book-open" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <div class="flex items-center space-x-1.5">
+                      <span class="text-xs font-bold text-slate-900">Theory-First</span>
+                      <span class="px-1.5 py-0.2 bg-violet-100 text-violet-700 rounded text-[9px] font-bold">Deep Dive</span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 mt-1">
+                      Deep conceptual principles, underlying architecture, mathematical proofs, and formal documentation.
+                    </p>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="pt-2">
+            <button id="generateBtn" type="button" onclick="submitGenerateRoadmap()" class="w-full py-4 px-6 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-sm sm:text-base rounded-xl shadow-lg shadow-indigo-200 transition flex items-center justify-center space-x-2">
+              <i data-lucide="sparkles" class="w-5 h-5"></i>
+              <span>Generate Personalized Roadmap</span>
+            </button>
+          </div>
+
+        </div>
+
+        </div>
+
+        <aside class="hidden lg:block space-y-4">
+          <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=700&q=85" alt="Learner working on a digital project" class="h-44 w-full object-cover">
+            <div class="p-5">
+              <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-500">Your next chapter</p>
+              <h2 class="mt-2 text-lg font-extrabold text-slate-900">Make progress visible.</h2>
+              <p class="mt-2 text-xs leading-relaxed text-slate-500">Turn a broad ambition into small wins you can practice, track, and proudly share.</p>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Built around you</p>
+            <div class="space-y-4">
+              <div class="flex items-start gap-3">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600"><i data-lucide="route" class="h-4 w-4"></i></div>
+                <div><h3 class="text-xs font-bold text-slate-800">Clear milestones</h3><p class="mt-0.5 text-[11px] text-slate-500">Know exactly what to tackle next.</p></div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"><i data-lucide="line-chart" class="h-4 w-4"></i></div>
+                <div><h3 class="text-xs font-bold text-slate-800">Visible momentum</h3><p class="mt-0.5 text-[11px] text-slate-500">Track progress as your skills grow.</p></div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600"><i data-lucide="messages-square" class="h-4 w-4"></i></div>
+                <div><h3 class="text-xs font-bold text-slate-800">Adaptive guidance</h3><p class="mt-0.5 text-[11px] text-slate-500">Adjust the plan when life changes.</p></div>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SCREEN 2: ROADMAP DASHBOARD                -->
+    <!-- ========================================== -->
+    <section id="dashboardScreen" class="hidden space-y-6">
+      
+      <!-- HERO STATUS BANNER -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          
+          <!-- Left Goal Meta -->
+          <div class="space-y-2">
+            <div class="flex flex-wrap items-center gap-2">
+              <span id="dashGoalBadge" class="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-md text-xs font-bold uppercase tracking-wider">
+                Roadmap
+              </span>
+              <span id="dashStyleBadge" class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md text-xs font-semibold flex items-center space-x-1">
+                <i data-lucide="hammer" class="w-3.5 h-3.5"></i>
+                <span>Project-Based</span>
+              </span>
+              <span id="dashPaceBadge" class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md text-xs font-semibold flex items-center space-x-1">
+                <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                <span id="dashPaceText">10 hrs/wk · 10 weeks</span>
+              </span>
+            </div>
+
+            <h2 id="dashGoalTitle" class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              Data Analyst Career Path
+            </h2>
+
+            <div class="flex items-center space-x-4 text-xs text-slate-500">
+              <span>Updated <span id="dashLastUpdated" class="font-medium text-slate-700">Just now</span></span>
+              <span>•</span>
+              <span id="dashMilestonesCount">0 / 0 Milestones completed</span>
+            </div>
+          </div>
+
+          <!-- Right Progress & Actions -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            
+            <!-- Progress Pill Card -->
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center sm:text-left">
+              <div class="flex items-center justify-between gap-4 mb-1">
+                <span class="text-xs font-semibold text-slate-500">Overall Progress</span>
+                <span id="dashProgressPct" class="text-xs font-black text-indigo-600">0%</span>
+              </div>
+              <div class="w-40 sm:w-48 bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                <div id="dashProgressBar" class="progress-bar bg-gradient-to-r from-indigo-500 to-emerald-500 h-2.5 rounded-full transition-all duration-500"></div>
+              </div>
+            </div>
+
+            <!-- Primary Action: Progress Check-in -->
+            <button onclick="openCheckinModal()" class="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-200 flex items-center justify-center space-x-1.5 transition">
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
+              <span>Progress Check-in</span>
+            </button>
+
+            <!-- Action: AI Adjust -->
+            <button onclick="openAdjustModal()" class="px-3.5 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold text-xs rounded-xl flex items-center justify-center space-x-1.5 transition">
+              <i data-lucide="sparkles" class="w-4 h-4 text-indigo-600"></i>
+              <span>AI Adjust</span>
+            </button>
+
+          </div>
+
+        </div>
+
+        <!-- ACTION TOOLBAR: Style Switcher & Export -->
+        <div class="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+          
+          <!-- Left: Style Switcher Toggle -->
+          <div class="flex items-center space-x-2">
+            <span class="text-slate-500 font-medium">Style:</span>
+            <div class="inline-flex p-0.5 bg-slate-100 rounded-lg border border-slate-200">
+              <button id="styleToggleProject" onclick="toggleStyleMode('project-based')" class="px-2.5 py-1 text-xs font-bold rounded-md bg-white text-indigo-700 shadow-sm transition">
+                🔨 Project-Based
+              </button>
+              <button id="styleToggleTheory" onclick="toggleStyleMode('theory-first')" class="px-2.5 py-1 text-xs font-bold rounded-md text-slate-600 hover:text-slate-900 transition">
+                📖 Theory-First
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Share & Export -->
+          <div class="flex items-center space-x-2">
+            <button onclick="openShareModal()" class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-700 font-medium flex items-center space-x-1 transition">
+              <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+              <span>Share</span>
+            </button>
+            <button onclick="exportMarkdown()" class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-700 font-medium flex items-center space-x-1 transition">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Markdown</span>
+            </button>
+            <button onclick="window.print()" class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-700 font-medium flex items-center space-x-1 transition">
+              <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+              <span>Print/PDF</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- MENTOR COACHING & ADJUSTMENT NOTICES -->
+      <div id="mentorAdviceBox" class="bg-gradient-to-r from-indigo-50 via-purple-50 to-blue-50 border border-indigo-100 rounded-2xl p-5 relative overflow-hidden">
+        <div class="flex items-start space-x-3.5">
+          <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+            <i data-lucide="bot" class="w-5 h-5"></i>
+          </div>
+          <div class="space-y-1 flex-1">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold text-indigo-900 uppercase tracking-wider flex items-center space-x-1.5">
+                <span>AI Mentor Coaching Insight</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              </h3>
+              <button onclick="openAdjustmentHistoryModal()" id="viewChangeLogBtn" class="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 underline">
+                View Mentor Change Log
+              </button>
+            </div>
+            <p id="mentorAdviceText" class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+              Your personalized curriculum is set up! Take on Milestone 1 first. Remember to check in once completed or if you encounter roadblocks.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW SELECTOR TABS -->
+      <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+        <div class="flex items-center space-x-2" id="viewTabs">
+          <button onclick="switchView('timeline')" id="tabTimeline" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 text-white shadow-sm flex items-center space-x-1.5 transition">
+            <i data-lucide="git-commit" class="w-4 h-4"></i>
+            <span>Timeline Stepper</span>
+          </button>
+          <button onclick="switchView('kanban')" id="tabKanban" class="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-100 flex items-center space-x-1.5 transition">
+            <i data-lucide="columns" class="w-4 h-4"></i>
+            <span>Kanban Board</span>
+          </button>
+          <button onclick="switchView('summary')" id="tabSummary" class="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-100 flex items-center space-x-1.5 transition">
+            <i data-lucide="layout-grid" class="w-4 h-4"></i>
+            <span>Phase Summary</span>
+          </button>
+        </div>
+
+        <div class="text-xs text-slate-500 hidden sm:block">
+          <span class="font-medium text-slate-700" id="activeViewLabel">Timeline Stepper</span>
+        </div>
+      </div>
+
+      <!-- VIEW CONTENT CONTAINERS -->
+      <div id="viewContainer">
+        <!-- 1. Timeline View Container -->
+        <div id="timelineView" class="relative pl-2 sm:pl-4 space-y-6">
+          <div class="timeline-line hidden sm:block"></div>
+          <div id="milestonesList" class="space-y-6">
+            <!-- Dynamic Milestones injected here -->
+          </div>
+        </div>
+
+        <!-- 2. Kanban Board Container -->
+        <div id="kanbanView" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          <!-- Not Started Column -->
+          <div class="bg-slate-100/80 rounded-2xl p-4 border border-slate-200/80 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center space-x-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+                <span>Not Started</span>
+              </h4>
+              <span id="kanbanNotStartedCount" class="px-2 py-0.5 bg-white text-slate-600 rounded-full text-xs font-bold">0</span>
+            </div>
+            <div id="kanbanNotStartedList" class="space-y-3 min-h-[120px]"></div>
+          </div>
+
+          <!-- In Progress Column -->
+          <div class="bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-indigo-700 uppercase tracking-wider flex items-center space-x-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                <span>In Progress</span>
+              </h4>
+              <span id="kanbanInProgressCount" class="px-2 py-0.5 bg-white text-indigo-700 rounded-full text-xs font-bold">0</span>
+            </div>
+            <div id="kanbanInProgressList" class="space-y-3 min-h-[120px]"></div>
+          </div>
+
+          <!-- Done Column -->
+          <div class="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-100 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center space-x-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span>Completed</span>
+              </h4>
+              <span id="kanbanDoneCount" class="px-2 py-0.5 bg-white text-emerald-700 rounded-full text-xs font-bold">0</span>
+            </div>
+            <div id="kanbanDoneList" class="space-y-3 min-h-[120px]"></div>
+          </div>
+
+        </div>
+
+        <!-- 3. Phase Summary Container -->
+        <div id="summaryView" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamic Phase summary cards injected here -->
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL: PROGRESS CHECK-IN                   -->
+  <!-- ========================================== -->
+  <div id="checkinModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-5">
+      
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Progress Check-in</h3>
+            <p class="text-[11px] text-slate-500">Report status & pace to your AI mentor</p>
+          </div>
+        </div>
+        <button onclick="closeCheckinModal()" title="Close check-in dialog" aria-label="Close check-in dialog" class="text-slate-400 hover:text-slate-700">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <!-- Milestone Select -->
+        <div>
+          <label for="checkinMilestoneSelect" class="block font-bold text-slate-700 mb-1">Select Milestone</label>
+          <select id="checkinMilestoneSelect" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-indigo-500">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+
+        <!-- Status update -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Milestone Status</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="p-2 border rounded-lg text-center cursor-pointer hover:border-slate-300">
+              <input type="radio" name="checkinStatus" value="not_started" class="sr-only">
+              <span>⭕ Not Started</span>
+            </label>
+            <label class="p-2 border rounded-lg text-center cursor-pointer hover:border-indigo-300">
+              <input type="radio" name="checkinStatus" value="in_progress" class="sr-only">
+              <span>⏳ In Progress</span>
+            </label>
+            <label class="p-2 border border-emerald-500 bg-emerald-50 text-emerald-800 font-bold rounded-lg text-center cursor-pointer">
+              <input type="radio" name="checkinStatus" value="done" checked class="sr-only">
+              <span>✅ Completed</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Pace assessment -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">How is your schedule feeling?</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="p-2.5 border rounded-lg text-center cursor-pointer pace-option hover:border-amber-300" data-pace="behind">
+              <input type="radio" name="checkinPace" value="behind" class="sr-only">
+              <div class="text-base">⏳</div>
+              <div class="font-bold text-[11px] text-slate-800 mt-0.5">Behind</div>
+              <div class="text-[9px] text-slate-400">Need more time</div>
+            </label>
+            <label class="p-2.5 border-2 border-indigo-600 bg-indigo-50/50 rounded-lg text-center cursor-pointer pace-option" data-pace="on_track">
+              <input type="radio" name="checkinPace" value="on_track" checked class="sr-only">
+              <div class="text-base">🎯</div>
+              <div class="font-bold text-[11px] text-slate-800 mt-0.5">On Track</div>
+              <div class="text-[9px] text-slate-400">Right on pace</div>
+            </label>
+            <label class="p-2.5 border rounded-lg text-center cursor-pointer pace-option hover:border-emerald-300" data-pace="ahead">
+              <input type="radio" name="checkinPace" value="ahead" class="sr-only">
+              <div class="text-base">⚡</div>
+              <div class="font-bold text-[11px] text-slate-800 mt-0.5">Ahead</div>
+              <div class="text-[9px] text-slate-400">Ready to speed up</div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Struggles / Blockers -->
+        <div>
+          <label for="checkinStruggles" class="block font-bold text-slate-700 mb-1">
+            Any roadblocks or topics you struggled with?
+          </label>
+          <input type="text" id="checkinStruggles" placeholder="e.g., SQL window functions, CSS Grid, React useEffect dependencies" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500">
+          <p class="text-[10px] text-slate-400 mt-1">If you report being behind or struggling, the AI mentor will adapt the upcoming roadmap!</p>
+        </div>
+
+        <!-- Journal Notes -->
+        <div>
+          <label for="checkinNotes" class="block font-bold text-slate-700 mb-1">
+            Milestone Journal / What you built or learned
+          </label>
+          <textarea id="checkinNotes" rows="2" placeholder="Jot a note or what you built for your portfolio..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
+        <button onclick="closeCheckinModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancel</button>
+        <button onclick="submitCheckin()" id="submitCheckinBtn" class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition flex items-center space-x-1.5">
+          <i data-lucide="check" class="w-4 h-4"></i>
+          <span>Save & Check-In</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: AI ROADMAP ADJUSTMENT               -->
+  <!-- ========================================== -->
+  <div id="adjustModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-5">
+      
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Adaptive AI Roadmap Re-planning</h3>
+            <p class="text-[11px] text-slate-500">Ask your mentor to reorganize your upcoming path</p>
+          </div>
+        </div>
+        <button onclick="closeAdjustModal()" title="Close adjustment dialog" aria-label="Close adjustment dialog" class="text-slate-400 hover:text-slate-700">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1.5">Current Pace Sentiment</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="p-3 border-2 border-amber-500 bg-amber-50/50 rounded-xl text-center cursor-pointer adjust-pace-card" data-pace="behind">
+              <input type="radio" name="adjustPace" value="behind" checked class="sr-only">
+              <span class="text-xl">⏳</span>
+              <div class="font-bold text-slate-900 mt-1">Behind Schedule</div>
+              <div class="text-[10px] text-slate-500">Extend & reinforce</div>
+            </label>
+            <label class="p-3 border border-slate-200 rounded-xl text-center cursor-pointer adjust-pace-card hover:border-slate-300" data-pace="on_track">
+              <input type="radio" name="adjustPace" value="on_track" class="sr-only">
+              <span class="text-xl">🎯</span>
+              <div class="font-bold text-slate-900 mt-1">On Track</div>
+              <div class="text-[10px] text-slate-500">Keep pace steady</div>
+            </label>
+            <label class="p-3 border border-slate-200 rounded-xl text-center cursor-pointer adjust-pace-card hover:border-slate-300" data-pace="ahead">
+              <input type="radio" name="adjustPace" value="ahead" class="sr-only">
+              <span class="text-xl">⚡</span>
+              <div class="font-bold text-slate-900 mt-1">Ahead of Schedule</div>
+              <div class="text-[10px] text-slate-500">Accelerate & deep-dive</div>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label for="adjustStruggles" class="block font-bold text-slate-700 mb-1">
+            Focus Areas / Roadblocks (Optional)
+          </label>
+          <input type="text" id="adjustStruggles" placeholder="e.g., SQL window functions, recursion, async JavaScript" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div>
+          <label for="adjustFeedback" class="block font-bold text-slate-700 mb-1">
+            General Feedback or Constraints
+          </label>
+          <textarea id="adjustFeedback" rows="2" placeholder="e.g., I have 3 extra hours this weekend, or please add more practice problems" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
+        <button onclick="closeAdjustModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancel</button>
+        <button onclick="submitRoadmapAdjustment()" id="submitAdjustBtn" class="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition flex items-center space-x-1.5">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          <span>Re-Plan Roadmap</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: MENTOR ADJUSTMENT EXPLANATION / LOG -->
+  <!-- ========================================== -->
+  <div id="historyModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+            <i data-lucide="history" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Mentor Adjustments & Rationale</h3>
+            <p class="text-[11px] text-slate-500">What changed and why your mentor adapted your path</p>
+          </div>
+        </div>
+        <button onclick="closeAdjustmentHistoryModal()" title="Close mentor history dialog" aria-label="Close mentor history dialog" class="text-slate-400 hover:text-slate-700">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div id="historyListContainer" class="space-y-3 max-h-96 overflow-y-auto text-xs divide-y divide-slate-100">
+        <!-- Dynamically injected adjustment logs -->
+      </div>
+
+      <div class="pt-2 border-t border-slate-100 text-right">
+        <button onclick="closeAdjustmentHistoryModal()" class="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: GAMIFICATION BADGES & STREAKS       -->
+  <!-- ========================================== -->
+  <div id="badgesModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+            <span>🏆</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Streaks & Badges</h3>
+            <p class="text-[11px] text-slate-500">Celebrate your learning milestones</p>
+          </div>
+        </div>
+        <button onclick="closeBadgesModal()" title="Close badges dialog" aria-label="Close badges dialog" class="text-slate-400 hover:text-slate-700">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Streak Header -->
+      <div class="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="text-3xl">🔥</div>
+          <div>
+            <div class="text-sm font-extrabold text-amber-900"><span id="modalStreakDays">3</span> Day Learning Streak!</div>
+            <div class="text-[11px] text-amber-700">Keep checking in daily to maintain momentum.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Badges Showcase -->
+      <div>
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Milestone Achievements</p>
+        <div id="badgesContainer" class="grid grid-cols-2 gap-2.5 text-xs">
+          <!-- Dynamically populated badges -->
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-100 text-right">
+        <button onclick="closeBadgesModal()" class="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition">Awesome</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: SETTINGS & API KEYS                 -->
+  <!-- ========================================== -->
+  <div id="settingsModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+            <i data-lucide="settings" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">AI Engine Settings</h3>
+            <p class="text-[11px] text-slate-500">Configure LLM providers or use zero-config local engine</p>
+          </div>
+        </div>
+        <button onclick="closeSettingsModal()" title="Close settings dialog" aria-label="Close settings dialog" class="text-slate-400 hover:text-slate-700">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label for="settingProvider" class="block font-bold text-slate-700 mb-1">AI Provider Mode</label>
+          <select id="settingProvider" aria-label="AI Provider Mode" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800">
+            <option value="smart_fallback">Smart Local Engine (Zero Config, 100% Reliable)</option>
+            <option value="gemini">Google Gemini API (gemini-2.5-flash)</option>
+            <option value="openai">OpenAI API (GPT-4o-mini)</option>
+            <option value="anthropic">Anthropic API (Claude Sonnet 4.6)</option>
+          </select>
+          <p class="text-[10px] text-slate-400 mt-1">Smart Local Engine comes pre-loaded with verified curricula & free links.</p>
+        </div>
+
+        <div id="apiKeyGroup">
+          <label for="settingApiKey" class="block font-bold text-slate-700 mb-1">API Key (Optional)</label>
+          <input type="password" id="settingApiKey" placeholder="Enter Gemini or OpenAI API Key..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+          <p class="text-[10px] text-slate-400 mt-1">Key is kept in browser session storage only.</p>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
+        <button onclick="closeSettingsModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancel</button>
+        <button onclick="saveSettings()" class="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition">Save Preferences</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: SHAREABLE LINK & PREVIEW            -->
+  <!-- ========================================== -->
+  <div id="shareModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+            <i data-lucide="share-2" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Share Your Roadmap</h3>
+            <p class="text-[11px] text-slate-500">Public link for mentors, peers, or portfolio</p>
+          </div>
+        </div>
+        <button onclick="closeShareModal()" title="Close share dialog" aria-label="Close share dialog" class="text-slate-400 hover:text-slate-700">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label for="shareUrlInput" class="block font-bold text-slate-700 mb-1">Public Share Link</label>
+          <div class="flex items-center space-x-2">
+            <input type="text" id="shareUrlInput" readonly class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px] text-slate-600">
+            <button onclick="copyShareUrl()" id="copyShareBtn" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shrink-0 transition">
+              Copy
+            </button>
+          </div>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-slate-600 space-y-1">
+          <div class="font-bold text-slate-800">Accountability & Portfolio</div>
+          <p class="text-[11px]">Anyone with this link can view your learning path, phases, completed milestones, and free resources.</p>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-100 text-right">
+        <button onclick="closeShareModal()" class="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT APPLICATION -->
+  <script src="/static/app.js"></script>
+  <script>
+    // Initialize Lucide icons on load
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    });
+
+    function logoutUser() {
+      var token = window.localStorage.getItem('pathpulse_token') || window.sessionStorage.getItem('pathpulse_token');
+      var finish = function () {
+        window.localStorage.removeItem('pathpulse_token');
+        window.localStorage.removeItem('pathpulse_user');
+        window.sessionStorage.removeItem('pathpulse_token');
+        window.sessionStorage.removeItem('pathpulse_user');
+        window.location.href = '/login';
+      };
+      if (token) {
+        fetch('/api/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }).finally(finish);
+      } else {
+        finish();
+      }
+    }
+  </script>
+</body>
+</html>

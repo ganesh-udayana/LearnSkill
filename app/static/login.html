@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — PathPulse AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
+          },
+          fontFamily: {
+            hand: ['Caveat', 'cursive'],
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .aurora-bg {
+      background:
+        radial-gradient(60% 50% at 15% 90%, rgba(249,115,22,0.35) 0%, rgba(249,115,22,0) 60%),
+        radial-gradient(50% 45% at 75% 15%, rgba(139,92,246,0.35) 0%, rgba(139,92,246,0) 60%),
+        linear-gradient(160deg, #150826 0%, #1c0f36 45%, #0c0a1f 100%);
+    }
+    .road-glow { filter: drop-shadow(0 0 10px rgba(249,115,22,0.55)); }
+    .card-curve {
+      clip-path: polygon(6% 0, 100% 0, 100% 100%, 6% 100%, 0 50%);
+    }
+    @media (max-width: 1023px) {
+      .card-curve { clip-path: none; }
+    }
+    .input-focus:focus-within {
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+      border-color: #818cf8;
+    }
+  </style>
+</head>
+<body class="h-full">
+
+  <div class="min-h-screen flex flex-col aurora-bg text-white">
+
+    <!-- Top Nav -->
+    <header class="w-full">
+      <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 via-fuchsia-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-fuchsia-900/30">
+            <i data-lucide="compass" class="w-6 h-6 text-white"></i>
+          </div>
+          <div class="leading-tight">
+            <div class="font-extrabold text-lg tracking-tight">PathPulse<span class="text-orange-400">AI</span></div>
+            <div class="text-[11px] text-indigo-200/70 hidden sm:block">Your Learning, Our Guidance</div>
+          </div>
+        </div>
+
+        <nav class="hidden md:flex items-center gap-7 text-sm text-indigo-100/80">
+          <span class="flex items-center gap-1.5"><i data-lucide="layout-grid" class="w-4 h-4"></i> Features</span>
+          <span class="flex items-center gap-1.5"><i data-lucide="book-open" class="w-4 h-4"></i> Roadmaps</span>
+          <span class="flex items-center gap-1.5"><i data-lucide="trending-up" class="w-4 h-4"></i> Progress</span>
+          <span class="flex items-center gap-1.5"><i data-lucide="trophy" class="w-4 h-4"></i> Community</span>
+        </nav>
+
+        <a href="#" class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg border border-orange-400/60 text-orange-300 text-sm font-semibold hover:bg-orange-400/10 transition">
+          Explore Roadmaps <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </a>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-6 pb-10 grid lg:grid-cols-2 gap-10 items-center">
+
+      <!-- Left: Marketing panel -->
+      <div class="relative pt-4 pb-10">
+        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider bg-white/5 border border-white/10 text-orange-300 mb-5">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> AI POWERED. PERSONALLY YOURS.
+        </span>
+
+        <h1 class="text-4xl sm:text-5xl font-extrabold leading-tight tracking-tight">
+          Learn <span class="text-orange-400">Smarter.</span><br>
+          Grow <span class="text-indigo-400">Faster.</span>
+        </h1>
+
+        <p class="mt-4 text-indigo-100/70 max-w-md text-[15px]">
+          Get a personalized learning roadmap that adapts to your progress, preferred style, and goals.
+        </p>
+
+        <blockquote class="mt-6 max-w-sm border border-white/10 rounded-xl p-4 bg-white/5 text-indigo-100/80 text-sm italic relative">
+          <span class="text-orange-400 text-2xl leading-none font-serif absolute -top-1 left-3">&ldquo;</span>
+          <p class="pl-4">A mentor doesn't just teach, they map the path for you to win.</p>
+          <footer class="pl-4 mt-1 text-indigo-300/60 not-italic text-xs">— Unknown</footer>
+        </blockquote>
+
+        <div class="mt-8 flex gap-8">
+          <div class="flex flex-col items-center text-center gap-2 w-24">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-orange-500 to-fuchsia-500 flex items-center justify-center">
+              <i data-lucide="compass" class="w-5 h-5"></i>
+            </div>
+            <span class="text-xs text-indigo-100/70">Personalized Roadmaps</span>
+          </div>
+          <div class="flex flex-col items-center text-center gap-2 w-24">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-fuchsia-500 to-indigo-500 flex items-center justify-center">
+              <i data-lucide="trending-up" class="w-5 h-5"></i>
+            </div>
+            <span class="text-xs text-indigo-100/70">Adaptive Progress</span>
+          </div>
+          <div class="flex flex-col items-center text-center gap-2 w-24">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-fuchsia-500 to-pink-400 flex items-center justify-center">
+              <i data-lucide="target" class="w-5 h-5"></i>
+            </div>
+            <span class="text-xs text-indigo-100/70">Achieve Your Goals</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Login Card -->
+      <div class="flex justify-center lg:justify-end">
+        <div class="w-full max-w-md bg-white text-slate-800 rounded-2xl shadow-2xl p-8">
+
+          <div class="text-center mb-6">
+            <p class="font-hand text-2xl text-indigo-500" id="formGreeting">Welcome Back,</p>
+            <h2 class="text-2xl font-extrabold text-slate-900 mt-1" id="formTitle">Future Achiever! 👋</h2>
+            <p class="text-sm text-slate-500 mt-1" id="formSubtitle">Log in to continue your learning journey</p>
+          </div>
+
+          <form id="loginForm" class="space-y-4" onsubmit="return handleSubmit(event)">
+            <div>
+              <label id="usernameLabel" class="block text-xs font-bold text-slate-700 mb-1.5">Username</label>
+              <div class="flex items-center gap-2 px-3 py-2.5 border border-slate-200 rounded-xl input-focus transition">
+                <i data-lucide="user" class="w-4 h-4 text-slate-400 shrink-0"></i>
+                <input id="username" type="text" required minlength="3" placeholder="Enter your username"
+                  class="w-full outline-none text-sm placeholder:text-slate-400">
+              </div>
+            </div>
+
+            <div id="emailField" class="hidden">
+              <label class="block text-xs font-bold text-slate-700 mb-1.5" for="email">Email</label>
+              <div class="flex items-center gap-2 px-3 py-2.5 border border-slate-200 rounded-xl input-focus transition">
+                <i data-lucide="mail" class="w-4 h-4 text-slate-400 shrink-0"></i>
+                <input id="email" type="email" placeholder="Enter your email address"
+                  class="w-full outline-none text-sm placeholder:text-slate-400">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Password</label>
+              <div class="flex items-center gap-2 px-3 py-2.5 border border-slate-200 rounded-xl input-focus transition">
+                <i data-lucide="lock" class="w-4 h-4 text-slate-400 shrink-0"></i>
+                <input id="password" type="password" required minlength="6" placeholder="Enter your password"
+                  class="w-full outline-none text-sm placeholder:text-slate-400">
+                <button type="button" onclick="togglePassword()" title="Show or hide password" aria-label="Show or hide password" class="text-slate-400 hover:text-slate-600 shrink-0">
+                  <i data-lucide="eye" id="eyeIcon" class="w-4 h-4"></i>
+                </button>
+              </div>
+              <p id="pwHint" class="hidden text-[11px] text-slate-400 mt-1">At least 6 characters.</p>
+            </div>
+
+            <div class="flex items-center justify-between text-xs pt-1">
+              <label class="flex items-center gap-2 text-slate-600 cursor-pointer">
+                <input type="checkbox" id="rememberMe" checked class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-400">
+                Remember me
+              </label>
+              <a href="#" class="text-indigo-600 font-semibold hover:underline">Forgot password?</a>
+            </div>
+
+            <p id="loginError" class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-100 rounded-lg px-3 py-2"></p>
+            <p id="loginSuccess" class="hidden text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2"></p>
+
+            <button type="submit" id="submitBtn"
+              class="w-full py-3 rounded-xl font-bold text-white text-sm bg-gradient-to-r from-orange-500 to-indigo-600 hover:opacity-95 shadow-lg shadow-indigo-200 transition flex items-center justify-center gap-2 disabled:opacity-60">
+              <span id="submitBtnText">Let's Continue</span> <span>🚀</span>
+            </button>
+
+            <p class="text-center text-xs text-slate-500 pt-1" id="modeSwitchWrap">
+              New here? <a href="#" onclick="setMode('register'); return false;" id="modeSwitchLink" class="text-indigo-600 font-semibold hover:underline">Create your account →</a>
+            </p>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom stats bar -->
+    <footer class="bg-white text-slate-700 mt-4">
+      <div class="max-w-7xl mx-auto px-6 py-5 flex flex-wrap items-center justify-between gap-6">
+        <div class="flex flex-wrap gap-8">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center"><i data-lucide="users" class="w-4 h-4"></i></div>
+            <div>
+              <div class="font-extrabold text-indigo-700 text-sm">50K+</div>
+              <div class="text-[11px] text-slate-500">Active Learners</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center"><i data-lucide="target" class="w-4 h-4"></i></div>
+            <div>
+              <div class="font-extrabold text-orange-500 text-sm">1000+</div>
+              <div class="text-[11px] text-slate-500">Goals Achieved</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-pink-50 text-pink-500 flex items-center justify-center"><i data-lucide="star" class="w-4 h-4"></i></div>
+            <div>
+              <div class="font-extrabold text-pink-500 text-sm">98%</div>
+              <div class="text-[11px] text-slate-500">Satisfaction Rate</div>
+            </div>
+          </div>
+        </div>
+        <p class="text-xs italic text-slate-400 max-w-xs text-right hidden md:block">
+          "The beautiful thing about learning is that no one can take it away from you." <span class="not-italic">— B.B. King</span>
+        </p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => window.lucide && window.lucide.createIcons());
+
+    let mode = 'login'; // 'login' | 'register'
+
+    function setMode(next) {
+      mode = next;
+      const isRegister = mode === 'register';
+      document.getElementById('formGreeting').textContent = isRegister ? "Let's Get Started," : 'Welcome Back,';
+      document.getElementById('formTitle').textContent = isRegister ? 'Future Achiever! 🎯' : 'Future Achiever! 👋';
+      document.getElementById('formSubtitle').textContent = isRegister
+        ? 'Create an account to start your learning journey'
+        : 'Log in to continue your learning journey';
+      document.getElementById('usernameLabel').textContent = isRegister ? 'Username' : 'Username or Email';
+      document.getElementById('username').placeholder = isRegister ? 'Enter your username' : 'Enter your username or email';
+      document.getElementById('submitBtnText').textContent = isRegister ? 'Create Account' : "Let's Continue";
+      document.getElementById('pwHint').classList.toggle('hidden', !isRegister);
+      const emailInput = document.getElementById('email');
+      document.getElementById('emailField').classList.toggle('hidden', !isRegister);
+      emailInput.required = isRegister;
+      document.getElementById('modeSwitchWrap').innerHTML = isRegister
+        ? 'Already have an account? <a href="#" onclick="setMode(\'login\'); return false;" class="text-indigo-600 font-semibold hover:underline">Log in →</a>'
+        : 'New here? <a href="#" onclick="setMode(\'register\'); return false;" class="text-indigo-600 font-semibold hover:underline">Create your account →</a>';
+      clearMessages();
+    }
+
+    function togglePassword() {
+      const pw = document.getElementById('password');
+      const icon = document.getElementById('eyeIcon');
+      const show = pw.type === 'password';
+      pw.type = show ? 'text' : 'password';
+      icon.setAttribute('data-lucide', show ? 'eye-off' : 'eye');
+      window.lucide.createIcons();
+    }
+
+    function clearMessages() {
+      const errorEl = document.getElementById('loginError');
+      const successEl = document.getElementById('loginSuccess');
+      errorEl.classList.add('hidden');
+      successEl.classList.add('hidden');
+    }
+
+    function showError(msg) {
+      const errorEl = document.getElementById('loginError');
+      document.getElementById('loginSuccess').classList.add('hidden');
+      errorEl.textContent = msg;
+      errorEl.classList.remove('hidden');
+    }
+
+    function showSuccess(msg) {
+      const successEl = document.getElementById('loginSuccess');
+      document.getElementById('loginError').classList.add('hidden');
+      successEl.textContent = msg;
+      successEl.classList.remove('hidden');
+    }
+
+    async function handleSubmit(e) {
+      e.preventDefault();
+      clearMessages();
+
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const password = document.getElementById('password').value;
+
+      if (!username || !password) {
+        showError('Please enter both a username and password.');
+        return false;
+      }
+      if (mode === 'register' && !email) {
+        showError('Please enter your email address.');
+        return false;
+      }
+      if (mode === 'register' && password.length < 6) {
+        showError('Password must be at least 6 characters.');
+        return false;
+      }
+
+      const submitBtn = document.getElementById('submitBtn');
+      const submitBtnText = document.getElementById('submitBtnText');
+      const originalText = submitBtnText.textContent;
+      submitBtn.disabled = true;
+      submitBtnText.textContent = mode === 'register' ? 'Creating account…' : 'Signing in…';
+
+      try {
+        const endpoint = mode === 'register' ? '/api/auth/register' : '/api/auth/login';
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(mode === 'register' ? { username, email, password } : { username, password }),
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) throw new Error(data.detail || 'Something went wrong. Please try again.');
+
+        const remember = document.getElementById('rememberMe').checked;
+        const store = remember ? window.localStorage : window.sessionStorage;
+        store.setItem('pathpulse_token', data.token);
+        store.setItem('pathpulse_user', data.username);
+
+        showSuccess(mode === 'register' ? 'Account created! Redirecting…' : 'Welcome back! Redirecting…');
+        setTimeout(() => { window.location.href = '/static/index.html'; }, 500);
+      } catch (err) {
+        showError(err.message || 'Unable to reach the server. Please try again.');
+        submitBtn.disabled = false;
+        submitBtnText.textContent = originalText;
+      }
+
+      return false;
+    }
+
+  </script>
+</body>
+</html>

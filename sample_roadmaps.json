@@ -1,0 +1,36 @@
+{
+  "samples": [
+    {
+      "goal": "Become a Data Analyst in 10 weeks",
+      "skill_level": "beginner",
+      "hours_per_week": 10,
+      "target_timeframe_weeks": 10,
+      "learning_style": "project-based",
+      "description": "Master Excel/Sheets, SQL, Python/Pandas, Power BI/Tableau, and build an end-to-end portfolio."
+    },
+    {
+      "goal": "Data Analyst (Mathematical & Theoretical Foundations)",
+      "skill_level": "intermediate",
+      "hours_per_week": 12,
+      "target_timeframe_weeks": 10,
+      "learning_style": "theory-first",
+      "description": "Deep dive into probability, inferential statistics, relational database algebra, A/B testing theory, and dimensional modeling."
+    },
+    {
+      "goal": "Full-Stack Web Developer in 12 weeks",
+      "skill_level": "beginner",
+      "hours_per_week": 15,
+      "target_timeframe_weeks": 12,
+      "learning_style": "project-based",
+      "description": "Modern HTML5/CSS Grid, ES6+ JavaScript, React SPA, FastAPI/Node REST APIs, and production deployment."
+    },
+    {
+      "goal": "Machine Learning Engineer in 16 weeks",
+      "skill_level": "intermediate",
+      "hours_per_week": 12,
+      "target_timeframe_weeks": 16,
+      "learning_style": "project-based",
+      "description": "Classical ML (Scikit-Learn), Deep Learning (PyTorch), Transformers & RAG, and production MLOps."
+    }
+  ]
+}
